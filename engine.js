@@ -1,49 +1,101 @@
 const Engine = {
   current: "home",
+  lang: "fa",
+  score: 0,
 
   command: {
-    appName: "Language App",
+    languages: {
+      fa: {
+        home: "خانه",
+        lesson: "آموزش",
+        quiz: "آزمون",
+        result: "نتیجه",
+        welcome: "به اپ خوش آمدید",
+        startQuiz: "شروع آزمون",
+        yourScore: "امتیاز شما"
+      },
+      en: {
+        home: "Home",
+        lesson: "Lesson",
+        quiz: "Quiz",
+        result: "Result",
+        welcome: "Welcome to the app",
+        startQuiz: "Start Quiz",
+        yourScore: "Your Score"
+      }
+    },
+
     pages: [
-      { id: "home", title: "خانه", content: "به اپ خوش آمدید" },
-      { id: "lesson", title: "آموزش", content: "درس‌ها به صورت خودکار ساخته می‌شوند" },
-      { id: "quiz", title: "آزمون", content: "سوالات اینجا تولید می‌شوند" },
-      { id: "result", title: "نتیجه", content: "تحلیل نتیجه کاربر" }
+      { id: "home", type: "static" },
+      { id: "lesson", type: "content", text: "محتوای آموزشی به‌صورت خودکار ساخته شد." },
+      {
+        id: "quiz",
+        type: "quiz",
+        question: "2 + 2 = ?",
+        options: [2, 3, 4, 5],
+        answer: 4
+      },
+      { id: "result", type: "result" }
     ]
   },
 
+  t(key) {
+    return this.command.languages[this.lang][key];
+  },
+
   init() {
-    this.renderFromCommand();
+    this.render();
     this.open("home");
   },
 
-  renderFromCommand() {
+  render() {
     const app = document.getElementById("app");
     app.innerHTML = "";
 
-    this.command.pages.forEach(page => {
-      const section = document.createElement("section");
-      section.className = "view";
-      section.dataset.view = page.id;
+    this.command.pages.forEach(p => {
+      const s = document.createElement("section");
+      s.className = "view";
+      s.dataset.view = p.id;
 
-      section.innerHTML = `
-        <h1>${page.title}</h1>
-        <p>${page.content}</p>
-      `;
+      if (p.type === "static") {
+        s.innerHTML = `<h1>${this.t("home")}</h1><p>${this.t("welcome")}</p>`;
+      }
 
-      app.appendChild(section);
+      if (p.type === "content") {
+        s.innerHTML = `<h1>${this.t("lesson")}</h1><p>${p.text}</p>`;
+      }
+
+      if (p.type === "quiz") {
+        s.innerHTML = `
+          <h1>${this.t("quiz")}</h1>
+          <p>${p.question}</p>
+          ${p.options.map(o =>
+            `<button onclick="Engine.answer(${o}, ${p.answer})">${o}</button>`
+          ).join("")}
+        `;
+      }
+
+      if (p.type === "result") {
+        s.innerHTML = `
+          <h1>${this.t("result")}</h1>
+          <p>${this.t("yourScore")}: <strong id="score">0</strong></p>
+        `;
+      }
+
+      app.appendChild(s);
     });
   },
 
-  open(viewName) {
-    document.querySelectorAll(".view").forEach(v =>
-      v.classList.remove("active")
-    );
+  answer(selected, correct) {
+    if (selected === correct) this.score += 10;
+    document.getElementById("score").innerText = this.score;
+    this.open("result");
+  },
 
-    const target = document.querySelector(`[data-view="${viewName}"]`);
-    if (target) {
-      target.classList.add("active");
-      this.current = viewName;
-    }
+  open(view) {
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+    document.querySelector(`[data-view="${view}"]`)?.classList.add("active");
+    this.current = view;
   }
 };
 
