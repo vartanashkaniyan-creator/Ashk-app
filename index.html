@@ -1,42 +1,140 @@
 <!DOCTYPE html>
 <html lang="fa">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Professional App Core</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>App Builder</title>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      direction: rtl;
+      margin: 0;
+      padding: 10px;
+    }
+
+    nav button {
+      margin: 5px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    .view {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .view.active {
+      display: block;
+    }
+  </style>
 </head>
 <body>
 
-  <nav class="navbar">
+  <!-- منوی بالا -->
+  <nav>
     <button onclick="Engine.open('home')">خانه</button>
     <button onclick="Engine.open('lesson')">آموزش</button>
     <button onclick="Engine.open('quiz')">آزمون</button>
     <button onclick="Engine.open('result')">نتیجه</button>
   </nav>
 
-  <main id="app">
-    <section data-view="home" class="view active">
-      <h1>خانه</h1>
-      <p>هسته اپ آماده است.</p>
-    </section>
+  <!-- محل رندر صفحات -->
+  <div id="app"></div>
 
-    <section data-view="lesson" class="view">
-      <h1>آموزش</h1>
-      <p>محتوای آموزشی</p>
-    </section>
+  <script>
+    const Engine = {
+      current: "home",
+      lang: "fa",
+      score: 0,
 
-    <section data-view="quiz" class="view">
-      <h1>آزمون</h1>
-      <p>سوالات اینجا می‌آید</p>
-    </section>
+      command: {
+        languages: {
+          fa: {
+            home: "خانه",
+            lesson: "آموزش",
+            quiz: "آزمون",
+            result: "نتیجه",
+            welcome: "به اپ خوش آمدید",
+            yourScore: "امتیاز شما"
+          }
+        },
 
-    <section data-view="result" class="view">
-      <h1>نتیجه</h1>
-      <p>نمایش نتیجه</p>
-    </section>
-  </main>
+        pages: [
+          { id: "home", type: "static" },
+          { id: "lesson", type: "content", text: "درس‌ها به‌صورت خودکار ساخته می‌شوند." },
+          {
+            id: "quiz",
+            type: "quiz",
+            question: "2 + 2 = ؟",
+            options: [2, 3, 4, 5],
+            answer: 4
+          },
+          { id: "result", type: "result" }
+        ]
+      },
 
-  <script src="engine.js"></script>
+      t(key) {
+        return this.command.languages[this.lang][key];
+      },
+
+      init() {
+        this.render();
+        this.open("home");
+      },
+
+      render() {
+        const app = document.getElementById("app");
+        app.innerHTML = "";
+
+        this.command.pages.forEach(p => {
+          const s = document.createElement("section");
+          s.className = "view";
+          s.dataset.view = p.id;
+
+          if (p.type === "static") {
+            s.innerHTML = `<h2>${this.t("home")}</h2><p>${this.t("welcome")}</p>`;
+          }
+
+          if (p.type === "content") {
+            s.innerHTML = `<h2>${this.t("lesson")}</h2><p>${p.text}</p>`;
+          }
+
+          if (p.type === "quiz") {
+            s.innerHTML = `
+              <h2>${this.t("quiz")}</h2>
+              <p>${p.question}</p>
+              ${p.options.map(o =>
+                `<button onclick="Engine.answer(${o}, ${p.answer})">${o}</button>`
+              ).join("")}
+            `;
+          }
+
+          if (p.type === "result") {
+            s.innerHTML = `
+              <h2>${this.t("result")}</h2>
+              <p>${this.t("yourScore")}: <strong id="score">0</strong></p>
+            `;
+          }
+
+          app.appendChild(s);
+        });
+      },
+
+      answer(selected, correct) {
+        if (selected === correct) this.score += 10;
+        document.getElementById("score").innerText = this.score;
+        this.open("result");
+      },
+
+      open(view) {
+        document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+        document.querySelector(`[data-view="${view}"]`)?.classList.add("active");
+        this.current = view;
+      }
+    };
+
+    Engine.init();
+  </script>
+
 </body>
 </html>
