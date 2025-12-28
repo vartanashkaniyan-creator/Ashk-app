@@ -1,15 +1,42 @@
 <!DOCTYPE html>
 <html lang="fa">
 <head>
-  <meta charset="UTF-8">
-  <title>Auto App Builder</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Professional App Core</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div id="app"></div>
+  <nav class="navbar">
+    <button onclick="Engine.open('home')">خانه</button>
+    <button onclick="Engine.open('lesson')">آموزش</button>
+    <button onclick="Engine.open('quiz')">آزمون</button>
+    <button onclick="Engine.open('result')">نتیجه</button>
+  </nav>
 
-<script src="engine.js"></script>
+  <main id="app">
+    <section data-view="home" class="view active">
+      <h1>خانه</h1>
+      <p>هسته اپ آماده است.</p>
+    </section>
+
+    <section data-view="lesson" class="view">
+      <h1>آموزش</h1>
+      <p>محتوای آموزشی</p>
+    </section>
+
+    <section data-view="quiz" class="view">
+      <h1>آزمون</h1>
+      <p>سوالات اینجا می‌آید</p>
+    </section>
+
+    <section data-view="result" class="view">
+      <h1>نتیجه</h1>
+      <p>نمایش نتیجه</p>
+    </section>
+  </main>
+
+  <script src="engine.js"></script>
 </body>
 </html>
