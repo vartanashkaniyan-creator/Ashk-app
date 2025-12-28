@@ -68,6 +68,34 @@ button:hover {
     background-color: #45a049;
 }
 
+/* طراحی منو */
+nav ul {
+    list-style-type: none;
+    padding: 0;
+    margin-top: 30px;
+}
+
+nav ul li {
+    display: inline-block;
+    margin-right: 20px;
+}
+
+nav ul li a {
+    color: #333;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+nav ul li a:hover {
+    color: #4CAF50;
+}
+
+nav ul li a i {
+    margin-right: 8px;
+}
+
 /* طراحی قسمت خروجی */
 .output {
     background-color: #f9f9f9;
@@ -95,5 +123,12 @@ footer {
     }
     button {
         width: 70%;
+    }
+    nav ul {
+        text-align: center;
+    }
+    nav ul li {
+        display: block;
+        margin: 10px 0;
     }
 }
