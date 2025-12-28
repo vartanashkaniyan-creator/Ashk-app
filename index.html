@@ -2,21 +2,25 @@
 <html lang="fa">
 <head>
   <meta charset="UTF-8">
-  <title>Android App Creator</title>
+  <title>App Builder</title>
+
+  <!-- اتصال استایل -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="app">
-    <h1>App Creator</h1>
+<div class="app">
+  <h1>App Builder</h1>
 
-    <textarea id="command" placeholder="دستور برنامه را بنویس..."></textarea>
+  <textarea id="command"
+    placeholder="دستور فارسی یا انگلیسی بنویس..."></textarea>
 
-    <button onclick="generateCode()">ساخت کد</button>
+  <button onclick="buildApp()">ساخت اپ</button>
 
-    <pre id="output"></pre>
-  </div>
+  <pre id="output"></pre>
+</div>
 
-  <script src="script.js"></script>
+<!-- اتصال موتور -->
+<script src="engine.js"></script>
 </body>
 </html>
