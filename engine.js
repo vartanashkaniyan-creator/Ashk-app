@@ -1,108 +1,149 @@
-/***********************
- * 1) COMMAND PARSER
- ***********************/
+/*************************
+ * DICTIONARY (FA + EN)
+ *************************/
 const DICTIONARY = {
-  app: ["app", "اپ"],
   note: ["note", "یادداشت"],
   list: ["list", "لیست"],
-  login: ["login", "ورود", "لاگین"],
   save: ["save", "ذخیره"],
-  page: ["page", "صفحه"],
-  button: ["button", "دکمه"],
+  login: ["login", "ورود", "لاگین"],
   settings: ["settings", "تنظیمات"],
-  heavy: ["heavy", "سنگین", "حرفه‌ای"],
-  if: ["if", "اگر"]
+  heavy: ["heavy", "حرفه‌ای", "سنگین"]
 };
 
+/*************************
+ * PARSER
+ *************************/
 function parseCommand(text) {
-  const found = [];
   const t = text.toLowerCase();
+  const blocks = [];
 
   for (let key in DICTIONARY) {
     DICTIONARY[key].forEach(word => {
-      if (t.includes(word) && !found.includes(key)) {
-        found.push(key);
+      if (t.includes(word) && !blocks.includes(key)) {
+        blocks.push(key);
       }
     });
   }
-
-  return found;
+  return blocks;
 }
 
-/***********************
- * 2) INTENT ENGINE
- ***********************/
-function detectIntent(blocks) {
+/*************************
+ * BLUEPRINT
+ *************************/
+function buildBlueprint(blocks) {
   return {
-    level: blocks.includes("heavy") ? "advanced" : "normal",
-    needsLogin: blocks.includes("login"),
-    needsStorage: blocks.includes("save"),
-    multiPage: blocks.includes("page") || blocks.includes("settings")
+    note: blocks.includes("note"),
+    list: blocks.includes("list"),
+    save: blocks.includes("save"),
+    login: blocks.includes("login"),
+    settings: blocks.includes("settings"),
+    heavy: blocks.includes("heavy")
   };
 }
 
-/***********************
- * 3) APP BLUEPRINT
- ***********************/
-function buildBlueprint(blocks, intent) {
-  return {
-    pages: intent.multiPage ? ["home", "settings"] : ["home"],
-    components: blocks.filter(b =>
-      ["note", "list", "button", "login"].includes(b)
-    ),
-    storage: intent.needsStorage ? "local" : "none",
-    level: intent.level
-  };
-}
+/*************************
+ * REAL APP GENERATOR
+ *************************/
+function generateRealApp(bp) {
+  let html = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body{font-family:sans-serif;background:#0f172a;color:#fff;padding:16px}
+input,textarea,button{width:100%;margin:6px 0;padding:8px;border-radius:6px;border:none}
+button{background:#22c55e;color:#000;font-weight:bold}
+.card{background:#020617;padding:12px;border-radius:8px;margin-top:10px}
+</style>
+</head>
+<body>
+<h2>My App</h2>
+`;
 
-/***********************
- * 4) CODE GENERATOR
- ***********************/
-function generateAppCode(blueprint) {
-  let code = "📦 APP STRUCTURE\n\n";
-
-  code += "Pages:\n";
-  blueprint.pages.forEach(p => code += "- " + p + "\n");
-
-  code += "\nComponents:\n";
-  blueprint.components.forEach(c => code += "- " + c + "\n");
-
-  code += "\nStorage: " + blueprint.storage + "\n";
-  code += "Mode: " + blueprint.level + "\n";
-
-  code += "\n✅ App ready for Android WebView";
-
-  return code;
-}
-
-/***********************
- * 5) OPTIMIZER
- ***********************/
-function optimize(code, level) {
-  if (level === "advanced") {
-    return code + "\n\n⚙ Optimized for heavy apps (modular & scalable)";
+  /* LOGIN */
+  if (bp.login) {
+    html += `
+<div class="card">
+<h3>Login</h3>
+<input placeholder="Username">
+<input type="password" placeholder="Password">
+<button>Login</button>
+</div>
+`;
   }
-  return code;
+
+  /* NOTE */
+  if (bp.note) {
+    html += `
+<div class="card">
+<h3>Note</h3>
+<textarea id="noteText" placeholder="Write note..."></textarea>
+<button onclick="saveNote()">Save</button>
+<p id="noteView"></p>
+</div>
+`;
+  }
+
+  /* LIST */
+  if (bp.list) {
+    html += `
+<div class="card">
+<h3>List</h3>
+<input id="itemInput" placeholder="New item">
+<button onclick="addItem()">Add</button>
+<ul id="list"></ul>
+</div>
+`;
+  }
+
+  /* SETTINGS */
+  if (bp.settings) {
+    html += `
+<div class="card">
+<h3>Settings</h3>
+<p>Dark mode enabled</p>
+</div>
+`;
+  }
+
+  /* SCRIPT */
+  html += `
+<script>
+function saveNote(){
+  const t=document.getElementById("noteText").value;
+  document.getElementById("noteView").innerText=t;
+  ${bp.save ? 'localStorage.setItem("note",t);' : ''}
+}
+function addItem(){
+  const v=document.getElementById("itemInput").value;
+  const li=document.createElement("li");
+  li.innerText=v;
+  document.getElementById("list").appendChild(li);
+}
+${bp.save ? `
+window.onload=function(){
+  const n=localStorage.getItem("note");
+  if(n) document.getElementById("noteView").innerText=n;
+}
+` : ''}
+</script>
+
+</body>
+</html>
+`;
+
+  return html;
 }
 
-/***********************
- * MAIN ENTRY
- ***********************/
+/*************************
+ * MAIN
+ *************************/
 function buildApp() {
-  const input = document.getElementById("command").value;
-  const output = document.getElementById("output");
+  const cmd = document.getElementById("command").value;
+  const blocks = parseCommand(cmd);
+  const blueprint = buildBlueprint(blocks);
+  const appCode = generateRealApp(blueprint);
 
-  const blocks = parseCommand(input);
-  const intent = detectIntent(blocks);
-  const blueprint = buildBlueprint(blocks, intent);
-  let code = generateAppCode(blueprint);
-  code = optimize(code, intent.level);
-
-  output.innerText =
-    "Detected Blocks:\n" +
-    JSON.stringify(blocks, null, 2) +
-    "\n\nBlueprint:\n" +
-    JSON.stringify(blueprint, null, 2) +
-    "\n\nGenerated Output:\n" +
-    code;
+  document.getElementById("output").innerHTML = appCode;
 }
