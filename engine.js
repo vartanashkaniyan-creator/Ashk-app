@@ -1,62 +1,78 @@
 function generate() {
   const raw = document.getElementById("command").value;
-  const lines = raw.split("\n");
-
   const cfg = {};
-  lines.forEach(l => {
-    const [k,v] = l.split("=");
-    if(k && v) cfg[k.trim()] = v.trim();
+
+  raw.split("\n").forEach(line => {
+    const [k, v] = line.split("=");
+    if (k && v) cfg[k.trim()] = v.trim();
   });
 
-  let screens = (cfg.SCREENS || "").split(",");
+  // ===== Resolver =====
+  const screens = (cfg.SCREENS || "").split(",");
+  const dark = cfg.THEME === "dark";
+  const rtl = cfg.RTL === "true";
 
-  let body = `
-    <h2>${cfg.APP_NAME || "My App"}</h2>
-    <p>نوع اپ: ${cfg.APP_TYPE}</p>
-  `;
+  // ===== UI Generator =====
+  let ui = `<h2>${cfg.APP_NAME || "My App"}</h2>`;
 
   if (screens.includes("home")) {
-    body += `<button onclick="show('lesson')">📘 درس‌ها</button>`;
+    ui += `<button onclick="go('lesson')">📘 درس‌ها</button>`;
   }
 
   if (screens.includes("lesson")) {
-    body += `
-      <div id="lesson" style="display:none">
-        <h3>درس ۱</h3>
+    ui += `
+      <div id="lesson" class="page">
+        <h3>Lesson 1</h3>
         <p>Hello = سلام</p>
-        <button onclick="save()">ذخیره پیشرفت</button>
-      </div>
-    `;
+      </div>`;
   }
 
   if (cfg.QUIZ) {
-    body += `
-      <h3>آزمون</h3>
-      <button onclick="alert('درست ✅')">گزینه ۱</button>
-      <button onclick="alert('غلط ❌')">گزینه ۲</button>
-    `;
+    ui += `
+      <div class="quiz">
+        <p>سلام یعنی؟</p>
+        <button onclick="score(1)">Hello</button>
+        <button onclick="score(0)">Bye</button>
+      </div>`;
   }
 
+  // ===== Logic Generator =====
+  let logic = `
+    let totalScore = 0;
+    function go(id){
+      document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+      document.getElementById(id).style.display='block';
+    }
+    function score(v){
+      totalScore += v;
+      ${cfg.SCORE ? "alert('امتیاز: '+totalScore)" : ""}
+      ${cfg.USER_PROGRESS ? "localStorage.setItem('score',totalScore);" : ""}
+    }
+  `;
+
+  // ===== App Template =====
   const app = `
   <html>
   <head>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <style>
-      body{font-family:sans-serif;background:#111;color:#fff;padding:15px}
-      button{width:100%;padding:10px;margin:5px 0;border-radius:10px}
+      body{
+        font-family:${cfg.FONT || "sans-serif"};
+        background:${dark ? "#0f172a" : "#fff"};
+        color:${dark ? "#fff" : "#000"};
+        direction:${rtl ? "rtl" : "ltr"};
+        padding:15px;
+      }
+      button{
+        width:100%;padding:12px;margin:6px 0;
+        border-radius:12px;border:none;
+      }
+      .page{display:none}
     </style>
   </head>
   <body>
-    ${body}
-    <script>
-      function show(id){
-        document.getElementById(id).style.display='block';
-      }
-      function save(){
-        localStorage.setItem("progress","lesson1");
-        alert("ذخیره شد");
-      }
-    <\/script>
+    ${ui}
+    <script>${logic}<\/script>
   </body>
   </html>
   `;
