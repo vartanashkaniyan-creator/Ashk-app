@@ -1,33 +1,36 @@
-// تابع تولید کد
-function generateCode() {
-    var command = document.getElementById('command').value.trim();
-    var output = document.getElementById('output');
-
-    if (command === "دکمه اضافه کن") {
-        output.innerHTML = `<pre><button>Click Me</button></pre>`;
-    } else if (command === "فرم ورود اضافه کن") {
-        output.innerHTML = `<pre>
-<form>
-    <input type="text" placeholder="نام کاربری">
-    <input type="password" placeholder="کلمه عبور">
-    <button type="submit">ورود</button>
-</form>
-        </pre>`;
-    } else {
-        output.innerHTML = `<p>دستور نامعتبر. لطفاً دستور صحیح وارد کنید.</p>`;
-    }
+function generateLesson() {
+    let lessonTitle = "درس جدید";
+    let lessonContent = "محتوای این درس به صورت خودکار تولید شد.";
+    document.getElementById("app").innerHTML = `<h2>${lessonTitle}</h2><p>${lessonContent}</p>`;
 }
 
-// اعتبارسنجی فرم
-document.getElementById('contactForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const message = document.getElementById('message').value;
+function generateQuiz() {
+    let question = "2 + 2 = ?";
+    let options = [2, 3, 4, 5];
+    let html = `<h2>${question}</h2>`;
+    options.forEach(option => {
+        html += `<button onclick="checkAnswer(${option}, 4)">${option}</button>`;
+    });
+    document.getElementById("app").innerHTML = html;
+}
 
-    if (name === '' || email === '' || message === '') {
-        alert('لطفاً همه فیلدها را پر کنید');
+function checkAnswer(selected, correct) {
+    let score = 0;
+    if (selected === correct) {
+        score += 10;
+        alert("پاسخ صحیح است!");
     } else {
-        alert('فرم با موفقیت ارسال شد');
+        alert("پاسخ اشتباه است.");
     }
-});
+    document.getElementById("app").innerHTML += `<p>امتیاز شما: ${score}</p>`;
+}
+
+function showApp(type) {
+    if (type === 'lesson') generateLesson();
+    if (type === 'quiz') generateQuiz();
+    if (type === 'result') showResult();
+}
+
+function showResult() {
+    document.getElementById("app").innerHTML = "<h2>نتیجه آزمون</h2><p>امتیاز شما: 10</p>";
+}
