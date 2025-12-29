@@ -1,34 +1,33 @@
-let generatedHTML = "";
-
-function generateCode() {
-  const cmd = document.getElementById("command").value.toLowerCase();
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("generateBtn");
+  const input = document.getElementById("commandInput");
   const output = document.getElementById("output");
 
-  if (cmd.includes("todo") || cmd.includes("کار")) {
-    generatedHTML = `
+  btn.addEventListener("click", () => {
+    const command = input.value.trim().toLowerCase();
+
+    if (!command) {
+      output.textContent = "❗ دستور وارد کن";
+      return;
+    }
+
+    if (command.includes("todo") || command.includes("لیست")) {
+      output.textContent = `
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Todo App</title>
+<meta charset="UTF-8">
+<title>Todo App</title>
 </head>
 <body>
-  <h2>My Todo App</h2>
-  <input placeholder="New task" />
-  <button>Add</button>
+<h2>Todo App</h2>
+<input placeholder="New task">
+<button>Add</button>
 </body>
 </html>
-`;
-    output.textContent = generatedHTML;
-  } else {
-    output.textContent = "❌ دستور شناخته نشد";
-  }
-}
-
-function goPreview() {
-  if (!generatedHTML) {
-    alert("اول کد رو تولید کن");
-    return;
-  }
-  localStorage.setItem("previewCode", generatedHTML);
-  window.location.href = "preview.html";
-}
+      `;
+    } else {
+      output.textContent = "❌ دستور شناخته نشد";
+    }
+  });
+});
