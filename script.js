@@ -1,57 +1,33 @@
-// دیکشنری زبان
-const dictionary = {
-  note: ["note", "یادداشت"],
-  login: ["login", "ورود", "لاگین"],
-  list: ["list", "لیست"],
-  save: ["save", "ذخیره"],
-  condition: ["if", "اگر"]
-};
+// تابع تولید کد
+function generateCode() {
+    var command = document.getElementById('command').value.trim();
+    var output = document.getElementById('output');
 
-// تحلیل دستور
-function parse(text) {
-  let result = [];
-
-  for (let key in dictionary) {
-    dictionary[key].forEach(word => {
-      if (text.toLowerCase().includes(word)) {
-        if (!result.includes(key)) result.push(key);
-      }
-    });
-  }
-  return result;
+    if (command === "دکمه اضافه کن") {
+        output.innerHTML = `<pre><button>Click Me</button></pre>`;
+    } else if (command === "فرم ورود اضافه کن") {
+        output.innerHTML = `<pre>
+<form>
+    <input type="text" placeholder="نام کاربری">
+    <input type="password" placeholder="کلمه عبور">
+    <button type="submit">ورود</button>
+</form>
+        </pre>`;
+    } else {
+        output.innerHTML = `<p>دستور نامعتبر. لطفاً دستور صحیح وارد کنید.</p>`;
+    }
 }
 
-// تولید خروجی
-function generateCode(blocks) {
-  let output = "";
+// اعتبارسنجی فرم
+document.getElementById('contactForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const message = document.getElementById('message').value;
 
-  if (blocks.includes("login"))
-    output += "✔ Login Screen\n";
-
-  if (blocks.includes("note"))
-    output += "✔ Note Feature\n";
-
-  if (blocks.includes("list"))
-    output += "✔ List View\n";
-
-  if (blocks.includes("save"))
-    output += "✔ Local Storage\n";
-
-  if (blocks.includes("condition"))
-    output += "✔ Conditional Logic\n";
-
-  return output || "❌ قابلیتی شناسایی نشد";
-}
-
-// دکمه ساخت اپ
-function buildApp() {
-  const text = document.getElementById("command").value;
-  const blocks = parse(text);
-  const output = generateCode(blocks);
-
-  document.getElementById("output").innerText =
-    "Blocks:\n" +
-    JSON.stringify(blocks, null, 2) +
-    "\n\nResult:\n" +
-    output;
-}
+    if (name === '' || email === '' || message === '') {
+        alert('لطفاً همه فیلدها را پر کنید');
+    } else {
+        alert('فرم با موفقیت ارسال شد');
+    }
+});
