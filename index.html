@@ -1,71 +1,28 @@
 <!DOCTYPE html>
 <html lang="fa">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Ashk App Creator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #eee;
-      padding: 20px;
-    }
-    textarea {
-      width: 100%;
-      height: 120px;
-      font-size: 16px;
-      margin-top: 10px;
-    }
-    button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    pre {
-      background: #111;
-      color: #0f0;
-      padding: 15px;
-      margin-top: 15px;
-      overflow-x: auto;
-    }
-  </style>
 </head>
 <body>
 
   <h1>Ashk App Creator</h1>
-  <p>دستور اپ را بنویس (فارسی یا انگلیسی):</p>
 
-  <textarea id="command" placeholder="مثال: اپ لیست بساز یا create a todo app"></textarea>
-  <br>
-  <button onclick="generateCode()">تولید کد اپ</button>
+  <textarea
+    id="commandInput"
+    placeholder="مثال: create todo app یا اپ لیست بساز"
+    rows="4"
+    cols="40"
+  ></textarea>
+
+  <br><br>
+
+  <button id="generateBtn">تولید کد اپ</button>
 
   <pre id="output">// generated code will appear here</pre>
 
-  <script>
-    function generateCode() {
-      const input = document.getElementById("command").value.toLowerCase();
-      const output = document.getElementById("output");
-
-      if (input.includes("list") || input.includes("لیست") || input.includes("todo")) {
-        output.textContent = `
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Todo App</title>
-</head>
-<body>
-  <h2>My Todo App</h2>
-  <input placeholder="New task" />
-  <button>Add</button>
-</body>
-</html>
-        `;
-      } else {
-        output.textContent = "// دستور شناخته نشد";
-      }
-    }
-  </script>
+  <!-- فقط همین اسکریپت -->
+  <script src="js/main.js"></script>
 
 </body>
 </html>
