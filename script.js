@@ -1,5 +1,12 @@
 const Engine = {
     current: "login", // صفحه شروع (صفحه ورود)
+    score: 0,
+    currentQuestion: 0,
+    questions: [
+        { question: "2 + 2 = ?", options: [2, 3, 4, 5], answer: 4 },
+        { question: "5 + 3 = ?", options: [7, 8, 9, 10], answer: 8 },
+        { question: "3 + 7 = ?", options: [10, 11, 12, 9], answer: 10 }
+    ],
 
     // ورود به اپ
     login: function() {
@@ -21,6 +28,8 @@ const Engine = {
             this.loadLessonPage();
         } else if (view === "quiz") {
             this.startQuiz();
+        } else if (view === "result") {
+            this.showResult();
         }
     },
 
@@ -53,15 +62,7 @@ const Engine = {
 
     // شروع آزمون
     startQuiz: function() {
-        const questions = [
-            { question: "2 + 2 = ?", options: [2, 3, 4, 5], answer: 4 },
-            { question: "5 + 3 = ?", options: [7, 8, 9, 10], answer: 8 }
-        ];
-
-        this.currentQuestion = 0; // شروع از سوال اول
-        this.score = 0; // امتیاز ابتدایی
-
-        this.showQuestion(questions[this.currentQuestion]);
+        this.showQuestion(this.questions[this.currentQuestion]);
     },
 
     // نمایش سوالات
@@ -77,12 +78,12 @@ const Engine = {
     // انتخاب جواب
     selectAnswer: function(selected, correct) {
         if (selected === correct) {
-            this.score += 10; // اگر پاسخ درست بود، امتیاز اضافه می‌شود
+            this.score += 10;
         }
         this.currentQuestion++;
 
-        if (this.currentQuestion < 2) { // اگر سوالات تمام نشده‌اند
-            this.showQuestion(questions[this.currentQuestion]);
+        if (this.currentQuestion < this.questions.length) {
+            this.showQuestion(this.questions[this.currentQuestion]);
         } else {
             this.showResult();
         }
@@ -92,11 +93,18 @@ const Engine = {
     showResult: function() {
         document.getElementById("app").innerHTML = `
             <h1>نتیجه آزمون</h1>
-            <p>امتیاز شما: <strong>${this.score}</strong></p>
-            <button onclick="Engine.open('home')">بازگشت به خانه</button>
+            <p>امتیاز شما: <strong id="score">${this.score}</strong></p>
+            <button onclick="Engine.restartQuiz()">شروع دوباره آزمون</button>
         `;
+    },
+
+    // شروع دوباره آزمون
+    restartQuiz: function() {
+        this.score = 0;
+        this.currentQuestion = 0;
+        this.startQuiz();
     }
 };
 
-// شروع اپلیکیشن با صفحه ورود
+// آغاز اپلیکیشن با صفحه ورود
 Engine.open("login");
