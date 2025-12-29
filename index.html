@@ -3,84 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <title>Ashk App Creator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <style>
-    body {
-      background: #1a1a1a;
-      color: #eaeaea;
-      font-family: sans-serif;
-      padding: 16px;
-    }
-
-    h1 {
-      margin-bottom: 8px;
-    }
-
-    textarea {
-      width: 100%;
-      height: 120px;
-      background: #111;
-      color: #00ff7f;
-      border: 1px solid #00ff7f;
-      padding: 10px;
-      font-size: 14px;
-    }
-
-    button {
-      margin-top: 10px;
-      padding: 10px 16px;
-      font-size: 15px;
-      cursor: pointer;
-    }
-
-    pre {
-      margin-top: 16px;
-      background: #000;
-      color: #00ff7f;
-      padding: 12px;
-      overflow-x: auto;
-      border: 1px solid #00ff7f;
-      min-height: 120px;
-    }
-  </style>
-</head>
-
-<body>
-
-  <h1>Ashk App Creator</h1>
-  <p>دستور اپ را بنویس (فارسی یا انگلیسی):</p>
-
-  <!-- ❌ فرم نداریم → هیچ submit ای انجام نمی‌شود -->
-  <textarea id="command">create todo app</textarea>
-
-  <!-- 🔑 خیلی مهم: type="button" -->
-  <button type="button" onclick="generateCode()">تولید کد اپ</button>
-
-  <pre id="output">// generated code will appear here</pre>
-
-  <script>
-    function generateCode() {
-      const cmd = document.getElementById("command").value.toLowerCase();
-      const output = document.getElementById("output");
-
-      if (cmd.includes("todo")) {
-        output.textContent = `<!DOCTYPE html>
-<html>
-<head>
-  <title>Todo App</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h2>Todo App</h2>
-  <input placeholder="New task">
-  <button>Add</button>
-</body>
-</html>`;
-      } else {
-        output.textContent = "// دستور شناخته نشد";
-      }
-    }
-  </script>
 
+<h1>Ashk App Creator</h1>
+<p>دستور اپ را بنویس (فارسی یا انگلیسی)</p>
+
+<textarea id="command" placeholder="create todo app"></textarea>
+
+<br><br>
+<button onclick="generateCode()">تولید کد اپ</button>
+<button onclick="goPreview()">پیش‌نمایش اپ</button>
+
+<pre id="output">// generated code will appear here</pre>
+
+<script src="main.js"></script>
 </body>
 </html>
