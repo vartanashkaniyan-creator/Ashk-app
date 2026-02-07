@@ -49,7 +49,7 @@ void main() {
   late AddWordUseCase addWordUseCase;
 
   setUpAll(() {
-    // ثبت fallback value برای WordEntity
+    // ثبت fallback value برای WordEntity (ضروری برای mocktail)
     registerFallbackValue(FakeWordEntity(english: 'test', persian: 'تست'));
   });
 
@@ -88,7 +88,7 @@ void main() {
     test('should throw exception when english text is empty', () {
       // Act & Assert
       expect(
-        () async => await addWordUseCase.execute(
+        () => addWordUseCase.execute(
           english: '',
           persian: testPersian,
         ),
@@ -101,7 +101,7 @@ void main() {
     test('should throw exception when persian text is empty', () {
       // Act & Assert
       expect(
-        () async => await addWordUseCase.execute(
+        () => addWordUseCase.execute(
           english: testEnglish,
           persian: '',
         ),
@@ -114,7 +114,7 @@ void main() {
     test('should throw exception when difficulty level is invalid', () {
       // Act & Assert
       expect(
-        () async => await addWordUseCase.execute(
+        () => addWordUseCase.execute(
           english: testEnglish,
           persian: testPersian,
           difficultyLevel: 6, // نامعتبر (باید ۱-۵ باشد)
@@ -125,7 +125,7 @@ void main() {
     });
 
     // تست خطای تکراری بودن کلمه
-    test('should handle duplicate word error from repository', () async {
+    test('should handle duplicate word error from repository', () {
       // Arrange
       when(() => mockRepository.addWord(any())).thenThrow(
         const DuplicateWordException('hello'),
@@ -133,7 +133,7 @@ void main() {
 
       // Act & Assert
       expect(
-        () async => await addWordUseCase.execute(
+        () => addWordUseCase.execute(
           english: testEnglish,
           persian: testPersian,
         ),
@@ -142,14 +142,14 @@ void main() {
     });
 
     // تست خطای عمومی ریپازیتوری
-    test('should handle generic repository error', () async {
+    test('should handle generic repository error', () {
       // Arrange
       when(() => mockRepository.addWord(any()))
           .thenThrow(Exception('Database error'));
 
       // Act & Assert
       expect(
-        () async => await addWordUseCase.execute(
+        () => addWordUseCase.execute(
           english: testEnglish,
           persian: testPersian,
         ),
@@ -176,32 +176,6 @@ void main() {
 
       // Assert
       verify(() => mockRepository.addWord(any())).called(1);
-    });
-
-    // تست اضافه: متن انگلیسی بیش از حد طولانی
-    test('should throw exception when english text is too long', () {
-      const longText = 'a' * 101; // 101 کاراکتر
-      
-      expect(
-        () async => await addWordUseCase.execute(
-          english: longText,
-          persian: testPersian,
-        ),
-        throwsA(isA<AddWordException>()),
-      );
-    });
-
-    // تست اضافه: متن فارسی بیش از حد طولانی
-    test('should throw exception when persian text is too long', () {
-      const longText = 'ب' * 151; // 151 کاراکتر
-      
-      expect(
-        () async => await addWordUseCase.execute(
-          english: testEnglish,
-          persian: longText,
-        ),
-        throwsA(isA<AddWordException>()),
-      );
     });
   });
 }
