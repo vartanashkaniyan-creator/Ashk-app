@@ -9,25 +9,31 @@ void main() {
       int id = 1,
       String english = 'hello',
       String persian = 'سلام',
+      String example = 'Hello world',
+      DateTime? createdAt,
+      DateTime? nextReview,
+      int interval = 1,
+      double easeFactor = 2.5,
+      int reviewCount = 0,
     }) {
       return Word(
         id: id,
         english: english,
         persian: persian,
-        example: 'Hello world',
-        createdAt: DateTime(2024, 1, 1),
-        nextReview: DateTime(2024, 1, 2),
-        interval: 1,
-        easeFactor: 2.5,
-        reviewCount: 0,
+        example: example,
+        createdAt: createdAt ?? DateTime(2024, 1, 1),
+        nextReview: nextReview ?? DateTime(2024, 1, 2),
+        interval: interval,
+        easeFactor: easeFactor,
+        reviewCount: reviewCount,
       );
     }
 
     test('should create a Word with correct properties', () {
-      // Arrange
+      // Arrange & Act
       final word = createTestWord();
 
-      // Act & Assert
+      // Assert
       expect(word.id, 1);
       expect(word.english, 'hello');
       expect(word.persian, 'سلام');
@@ -48,17 +54,18 @@ void main() {
       );
 
       // Assert
-      expect(copied.id, original.id); // LSP: باید جایگزین‌پذیر باشد
+      expect(copied.id, original.id);
       expect(copied.english, 'test');
       expect(copied.persian, original.persian);
       expect(copied.reviewCount, 5);
       expect(copied.easeFactor, original.easeFactor);
+      expect(copied.createdAt, original.createdAt);
     });
 
     test('reviewStatus should return correct status for overdue', () {
       // Arrange
       final word = createTestWord().copyWith(
-        nextReview: DateTime(2023, 12, 31), // گذشته
+        nextReview: DateTime(2023, 12, 31),
       );
 
       // Act
@@ -115,6 +122,17 @@ void main() {
       // Act & Assert
       expect(word1.hashCode, word2.hashCode);
     });
+
+    test('toString should return readable representation', () {
+      // Arrange
+      final word = createTestWord(id: 42, english: 'apple', persian: 'سیب');
+
+      // Act
+      final result = word.toString();
+
+      // Assert
+      expect(result, 'Word(42: apple -> سیب)');
+    });
   });
 
   group('SrsCalculationParams', () {
@@ -123,7 +141,7 @@ void main() {
       const params = SrsCalculationParams(
         currentInterval: 10,
         currentEaseFactor: 2.0,
-        quality: 2, // کمتر از 3
+        quality: 2,
       );
 
       // Act
@@ -145,14 +163,29 @@ void main() {
       final result = params.calculateNewInterval();
 
       // Assert
-      expect(result, 20); // 10 * 2.0
+      expect(result, 20);
     });
 
-    test('calculateNewInterval should clamp between 1 and 365', () {
+    test('calculateNewInterval should clamp minimum to 1', () {
+      // Arrange
+      const params = SrsCalculationParams(
+        currentInterval: 0,
+        currentEaseFactor: 0.5,
+        quality: 4,
+      );
+
+      // Act
+      final result = params.calculateNewInterval();
+
+      // Assert
+      expect(result, 1);
+    });
+
+    test('calculateNewInterval should clamp maximum to 365', () {
       // Arrange
       const params = SrsCalculationParams(
         currentInterval: 200,
-        currentEaseFactor: 3.0, // می‌شود 600
+        currentEaseFactor: 3.0,
         quality: 5,
       );
 
@@ -160,10 +193,10 @@ void main() {
       final result = params.calculateNewInterval();
 
       // Assert
-      expect(result, 365); // محدود به 365
+      expect(result, 365);
     });
 
-    test('calculateNewEaseFactor should clamp between 1.3 and 2.5', () {
+    test('calculateNewEaseFactor should clamp minimum to 1.3', () {
       // Arrange
       const params = SrsCalculationParams(
         currentInterval: 10,
@@ -175,10 +208,25 @@ void main() {
       final result = params.calculateNewEaseFactor();
 
       // Assert
-      expect(result, 1.3); // باید محدود شود
+      expect(result, 1.3);
     });
 
-    test('calculateNewEaseFactor should calculate correctly', () {
+    test('calculateNewEaseFactor should clamp maximum to 2.5', () {
+      // Arrange
+      const params = SrsCalculationParams(
+        currentInterval: 10,
+        currentEaseFactor: 3.0,
+        quality: 5,
+      );
+
+      // Act
+      final result = params.calculateNewEaseFactor();
+
+      // Assert
+      expect(result, 2.5);
+    });
+
+    test('calculateNewEaseFactor should calculate correctly for quality 3', () {
       // Arrange
       const params = SrsCalculationParams(
         currentInterval: 10,
@@ -245,14 +293,15 @@ void main() {
       expect(failure.message, 'Invalid value for english');
     });
 
-    test('All failures should be subtypes of Failure', () {
-      // LSP: همه باید جایگزین Failure پایه شوند
+    test('All failures should be subtypes of Failure (LSP)', () {
+      // Act
       final failures = [
         WordNotFoundFailure(1),
         DuplicateWordFailure('test'),
         InvalidWordDataFailure('field'),
       ];
 
+      // Assert
       for (final failure in failures) {
         expect(failure, isA<Failure>());
       }
@@ -284,7 +333,8 @@ void main() {
       // Assert
       expect(updated.query, 'updated');
       expect(updated.matchExample, isTrue);
-      expect(updated.matchEnglish, original.matchEnglish); // بدون تغییر باقی می‌ماند
+      expect(updated.matchEnglish, original.matchEnglish);
+      expect(updated.matchPersian, original.matchPersian);
     });
 
     test('AddWordParams should create correctly', () {
@@ -299,6 +349,44 @@ void main() {
       expect(params.english, 'hello');
       expect(params.persian, 'سلام');
       expect(params.example, 'example');
+    });
+
+    test('UpdateWordParams should create correctly', () {
+      // Arrange & Act
+      const params = UpdateWordParams(
+        id: 1,
+        english: 'hello',
+        persian: 'سلام',
+        example: 'updated example',
+      );
+
+      // Assert
+      expect(params.id, 1);
+      expect(params.english, 'hello');
+      expect(params.persian, 'سلام');
+      expect(params.example, 'updated example');
+    });
+
+    test('UpdateReviewParams should create correctly', () {
+      // Arrange & Act
+      const params = UpdateReviewParams(
+        wordId: 1,
+        quality: 4,
+      );
+
+      // Assert
+      expect(params.wordId, 1);
+      expect(params.quality, 4);
+    });
+  });
+
+  group('ReviewStatus Enum', () {
+    test('should have correct values', () {
+      // Act & Assert
+      expect(ReviewStatus.values.length, 3);
+      expect(ReviewStatus.upToDate.name, 'upToDate');
+      expect(ReviewStatus.dueSoon.name, 'dueSoon');
+      expect(ReviewStatus.overdue.name, 'overdue');
     });
   });
 }
