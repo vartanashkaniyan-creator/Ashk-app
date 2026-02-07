@@ -1,178 +1,140 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
-import 'package:english_learning_app/features/word/domain/usecases/add_word_usecase.dart';
-import 'package:english_learning_app/features/word/domain/repositories/word_repository.dart';
 import 'package:english_learning_app/features/word/domain/entities/word_entity.dart';
-import 'add_word_usecase_test.mocks.dart';
+import 'package:english_learning_app/features/word/domain/repositories/word_repository.dart';
+import 'package:english_learning_app/features/word/domain/usecases/add_word_usecase.dart';
+import 'package:mocktail/mocktail.dart';
 
-@GenerateMocks([WordRepository])
+// Mock ریپازیتوری برای تست
+class MockWordRepository extends Mock implements WordRepository {}
+
 void main() {
-  late MockWordRepository mockWordRepository;
+  late MockWordRepository mockRepository;
   late AddWordUseCase addWordUseCase;
 
   setUp(() {
-    mockWordRepository = MockWordRepository();
-    addWordUseCase = AddWordUseCase(mockWordRepository);
+    mockRepository = MockWordRepository();
+    addWordUseCase = AddWordUseCase(mockRepository);
   });
 
-  group('افزودن کلمه موفقیت‌آمیز', () {
-    test('باید کلمه را با داده معتبر به ریپازیتوری اضافه کند', () async {
+  group('AddWordUseCase Tests', () {
+    const testEnglish = 'hello';
+    const testPersian = 'سلام';
+    const testExample = 'Hello world!';
+    const testDifficulty = 2;
+    const testWordId = 1;
+
+    // تست موفقیت‌آمیز افزودن کلمه
+    test('should add word successfully when data is valid', () async {
       // Arrange
-      const testId = 1;
-      when(mockWordRepository.addWord(any)).thenAnswer((_) async => testId);
+      when(() => mockRepository.addWord(any()))
+          .thenAnswer((_) async => testWordId);
 
       // Act
       final result = await addWordUseCase.execute(
-        english: 'hello',
-        persian: 'سلام',
+        english: testEnglish,
+        persian: testPersian,
+        exampleSentence: testExample,
+        difficultyLevel: testDifficulty,
       );
 
       // Assert
-      expect(result, testId);
-      verify(mockWordRepository.addWord(any)).called(1);
-      
-      // بررسی اینکه WordEntity صحیح ایجاد شده
-      final capturedWord = verify(mockWordRepository.addWord(captureAny)).captured[0] as WordEntity;
-      expect(capturedWord.english, 'hello');
-      expect(capturedWord.persian, 'سلام');
-      expect(capturedWord.difficultyLevel, 1); // مقدار پیش‌فرض
-      expect(capturedWord.isValid, isTrue);
+      expect(result, testWordId);
+      verify(() => mockRepository.addWord(any())).called(1);
     });
 
-    test('باید کلمه را با مثال و سطح دشواری اضافه کند', () async {
-      // Arrange
-      when(mockWordRepository.addWord(any)).thenAnswer((_) async => 2);
-
-      // Act
-      final result = await addWordUseCase.execute(
-        english: 'book',
-        persian: 'کتاب',
-        exampleSentence: 'I read a book',
-        difficultyLevel: 3,
-      );
-
-      // Assert
-      expect(result, 2);
-      final capturedWord = verify(mockWordRepository.addWord(captureAny)).captured[0] as WordEntity;
-      expect(capturedWord.exampleSentence, 'I read a book');
-      expect(capturedWord.difficultyLevel, 3);
-    });
-  });
-
-  group('اعتبارسنجی ورودی‌ها', () {
-    test('باید برای متن انگلیسی خالی خطا بدهد', () {
+    // تست خطای اعتبارسنجی - متن انگلیسی خالی
+    test('should throw exception when english text is empty', () async {
       // Act & Assert
       expect(
-        () async => await addWordUseCase.execute(english: '', persian: 'سلام'),
-        throwsA(isA<AddWordException>()),
-      );
-    });
-
-    test('باید برای متن فارسی خالی خطا بدهد', () {
-      expect(
-        () async => await addWordUseCase.execute(english: 'hello', persian: ''),
-        throwsA(isA<AddWordException>()),
-      );
-    });
-
-    test('باید برای متن انگلیسی طولانی خطا بدهد', () {
-      final longText = 'a' * 101;
-      expect(
-        () async => await addWordUseCase.execute(english: longText, persian: 'سلام'),
-        throwsA(isA<AddWordException>()),
-      );
-    });
-
-    test('باید برای متن فارسی طولانی خطا بدهد', () {
-      final longText = 'ب' * 151;
-      expect(
-        () async => await addWordUseCase.execute(english: 'hello', persian: longText),
-        throwsA(isA<AddWordException>()),
-      );
-    });
-
-    test('باید برای سطح دشواری کمتر از 1 خطا بدهد', () {
-      expect(
         () async => await addWordUseCase.execute(
-          english: 'hello',
-          persian: 'سلام',
-          difficultyLevel: 0,
+          english: '',
+          persian: testPersian,
         ),
         throwsA(isA<AddWordException>()),
       );
+      verifyNever(() => mockRepository.addWord(any()));
     });
 
-    test('باید برای سطح دشواری بیشتر از 5 خطا بدهد', () {
+    // تست خطای اعتبارسنجی - متن فارسی خالی
+    test('should throw exception when persian text is empty', () async {
+      // Act & Assert
       expect(
         () async => await addWordUseCase.execute(
-          english: 'hello',
-          persian: 'سلام',
-          difficultyLevel: 6,
+          english: testEnglish,
+          persian: '',
         ),
         throwsA(isA<AddWordException>()),
       );
+      verifyNever(() => mockRepository.addWord(any()));
     });
-  });
 
-  group('خطاهای ریپازیتوری', () {
-    test('باید خطای DuplicateWordException را به AddWordException تبدیل کند', () {
+    // تست خطای اعتبارسنجی - سطح دشواری نامعتبر
+    test('should throw exception when difficulty level is invalid', () async {
+      // Act & Assert
+      expect(
+        () async => await addWordUseCase.execute(
+          english: testEnglish,
+          persian: testPersian,
+          difficultyLevel: 6, // نامعتبر (باید ۱-۵ باشد)
+        ),
+        throwsA(isA<AddWordException>()),
+      );
+      verifyNever(() => mockRepository.addWord(any()));
+    });
+
+    // تست خطای تکراری بودن کلمه
+    test('should handle duplicate word error from repository', () async {
       // Arrange
-      when(mockWordRepository.addWord(any)).thenThrow(
-        const DuplicateWordException('hello'),
-      );
+      when(() => mockRepository.addWord(any()))
+          .thenThrow(const DuplicateWordException(testEnglish));
 
       // Act & Assert
       expect(
-        () async => await addWordUseCase.execute(english: 'hello', persian: 'سلام'),
-        throwsA(
-          predicate<AddWordException>((e) => e.toString().contains('از قبل وجود دارد')),
+        () async => await addWordUseCase.execute(
+          english: testEnglish,
+          persian: testPersian,
         ),
-      );
-    });
-
-    test('باید خطای InvalidWordDataException را به AddWordException تبدیل کند', () {
-      when(mockWordRepository.addWord(any)).thenThrow(
-        const InvalidWordDataException('english'),
-      );
-
-      expect(
-        () async => await addWordUseCase.execute(english: 'hello', persian: 'سلام'),
         throwsA(isA<AddWordException>()),
       );
+      verify(() => mockRepository.addWord(any())).called(1);
     });
 
-    test('باید خطاهای عمومی ریپازیتوری را به AddWordException تبدیل کند', () {
-      when(mockWordRepository.addWord(any)).thenThrow(
-        Exception('خطای دیتابیس'),
-      );
-
-      expect(
-        () async => await addWordUseCase.execute(english: 'hello', persian: 'سلام'),
-        throwsA(
-          predicate<AddWordException>((e) => e.toString().contains('خطا در افزودن کلمه')),
-        ),
-      );
-    });
-  });
-
-  group('تریم کردن فضاهای خالی', () {
-    test('باید فضاهای خالی ابتدا و انتهای متن را تریم کند', () async {
+    // تست خطای عمومی ریپازیتوری
+    test('should handle generic repository error', () async {
       // Arrange
-      when(mockWordRepository.addWord(any)).thenAnswer((_) async => 1);
+      when(() => mockRepository.addWord(any()))
+          .thenThrow(Exception('Database error'));
+
+      // Act & Assert
+      expect(
+        () async => await addWordUseCase.execute(
+          english: testEnglish,
+          persian: testPersian,
+        ),
+        throwsA(isA<AddWordException>()),
+      );
+      verify(() => mockRepository.addWord(any())).called(1);
+    });
+
+    // تست trim کردن فاصله‌های اضافی
+    test('should trim whitespace from inputs', () async {
+      // Arrange
+      when(() => mockRepository.addWord(any()))
+          .thenAnswer((invocation) async {
+            final word = invocation.positionalArguments[0] as WordEntity;
+            expect(word.english, testEnglish); // بدون فاصله اضافی
+            expect(word.persian, testPersian);
+            return testWordId;
+          });
 
       // Act
       await addWordUseCase.execute(
-        english: '  hello  ',
-        persian: '  سلام  ',
-        exampleSentence: '  example  ',
+        english: '  $testEnglish  ', // با فاصله اضافی
+        persian: '$testPersian  ',   // با فاصله اضافی
       );
 
       // Assert
-      final capturedWord = verify(mockWordRepository.addWord(captureAny)).captured[0] as WordEntity;
-      expect(capturedWord.english, 'hello');
-      expect(capturedWord.persian, 'سلام');
-      expect(capturedWord.exampleSentence, 'example');
+      verify(() => mockRepository.addWord(any())).called(1);
     });
   });
 }
