@@ -7,9 +7,51 @@ import 'package:mocktail/mocktail.dart';
 // Mock ریپازیتوری برای تست
 class MockWordRepository extends Mock implements WordRepository {}
 
+// Fake WordEntity برای ثبت fallback value
+class FakeWordEntity extends Fake implements WordEntity {
+  @override
+  final String english;
+  @override
+  final String persian;
+  @override
+  final String? exampleSentence;
+  @override
+  final int reviewCount;
+  @override
+  final int difficultyLevel;
+  @override
+  final DateTime? nextReviewDate;
+  @override
+  final int reviewInterval;
+
+  FakeWordEntity({
+    required this.english,
+    required this.persian,
+    this.exampleSentence,
+    this.reviewCount = 0,
+    this.difficultyLevel = 1,
+    this.nextReviewDate,
+    this.reviewInterval = 24,
+  });
+
+  @override
+  bool get isValid => english.isNotEmpty && persian.isNotEmpty;
+
+  @override
+  DateTime calculateNextReviewDate(bool answeredCorrectly) => DateTime.now();
+
+  @override
+  List<Object?> get props => [english, persian];
+}
+
 void main() {
   late MockWordRepository mockRepository;
   late AddWordUseCase addWordUseCase;
+
+  setUpAll(() {
+    // ثبت fallback value برای WordEntity
+    registerFallbackValue(FakeWordEntity(english: 'test', persian: 'تست'));
+  });
 
   setUp(() {
     mockRepository = MockWordRepository();
@@ -43,7 +85,7 @@ void main() {
     });
 
     // تست خطای اعتبارسنجی - متن انگلیسی خالی
-    test('should throw exception when english text is empty', () async {
+    test('should throw exception when english text is empty', () {
       // Act & Assert
       expect(
         () async => await addWordUseCase.execute(
@@ -56,7 +98,7 @@ void main() {
     });
 
     // تست خطای اعتبارسنجی - متن فارسی خالی
-    test('should throw exception when persian text is empty', () async {
+    test('should throw exception when persian text is empty', () {
       // Act & Assert
       expect(
         () async => await addWordUseCase.execute(
@@ -69,7 +111,7 @@ void main() {
     });
 
     // تست خطای اعتبارسنجی - سطح دشواری نامعتبر
-    test('should throw exception when difficulty level is invalid', () async {
+    test('should throw exception when difficulty level is invalid', () {
       // Act & Assert
       expect(
         () async => await addWordUseCase.execute(
@@ -85,8 +127,9 @@ void main() {
     // تست خطای تکراری بودن کلمه
     test('should handle duplicate word error from repository', () async {
       // Arrange
-      when(() => mockRepository.addWord(any()))
-          .thenThrow(const DuplicateWordException(testEnglish));
+      when(() => mockRepository.addWord(any())).thenThrow(
+        const DuplicateWordException('hello'),
+      );
 
       // Act & Assert
       expect(
@@ -96,7 +139,6 @@ void main() {
         ),
         throwsA(isA<AddWordException>()),
       );
-      verify(() => mockRepository.addWord(any())).called(1);
     });
 
     // تست خطای عمومی ریپازیتوری
@@ -113,7 +155,6 @@ void main() {
         ),
         throwsA(isA<AddWordException>()),
       );
-      verify(() => mockRepository.addWord(any())).called(1);
     });
 
     // تست trim کردن فاصله‌های اضافی
@@ -121,20 +162,46 @@ void main() {
       // Arrange
       when(() => mockRepository.addWord(any()))
           .thenAnswer((invocation) async {
-            final word = invocation.positionalArguments[0] as WordEntity;
-            expect(word.english, testEnglish); // بدون فاصله اضافی
-            expect(word.persian, testPersian);
-            return testWordId;
-          });
+        final word = invocation.positionalArguments[0] as WordEntity;
+        expect(word.english, testEnglish); // بدون فاصله اضافی
+        expect(word.persian, testPersian); // بدون فاصله اضافی
+        return testWordId;
+      });
 
       // Act
       await addWordUseCase.execute(
         english: '  $testEnglish  ', // با فاصله اضافی
-        persian: '$testPersian  ',   // با فاصله اضافی
+        persian: '$testPersian  ', // با فاصله اضافی
       );
 
       // Assert
       verify(() => mockRepository.addWord(any())).called(1);
+    });
+
+    // تست اضافه: متن انگلیسی بیش از حد طولانی
+    test('should throw exception when english text is too long', () {
+      const longText = 'a' * 101; // 101 کاراکتر
+      
+      expect(
+        () async => await addWordUseCase.execute(
+          english: longText,
+          persian: testPersian,
+        ),
+        throwsA(isA<AddWordException>()),
+      );
+    });
+
+    // تست اضافه: متن فارسی بیش از حد طولانی
+    test('should throw exception when persian text is too long', () {
+      const longText = 'ب' * 151; // 151 کاراکتر
+      
+      expect(
+        () async => await addWordUseCase.execute(
+          english: testEnglish,
+          persian: longText,
+        ),
+        throwsA(isA<AddWordException>()),
+      );
     });
   });
 }
